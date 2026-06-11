@@ -40,6 +40,11 @@ workflows:
       flutter: stable
       xcode: latest
       cocoapods: default
+      ios_signing:
+        certificates:
+          - initialcert
+        provisioning_profiles:
+          - demoprofile
       vars:
         BUNDLE_ID: com.chrismusic.clangMusic
     cache:
@@ -55,8 +60,10 @@ workflows:
         script: flutter analyze
       - name: Test
         script: flutter test
+      - name: Set up iOS code signing
+        script: xcode-project use-profiles
       - name: Build IPA
-        script: flutter build ipa --release
+        script: flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
