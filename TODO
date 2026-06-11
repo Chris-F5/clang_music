@@ -1,0 +1,207 @@
+Your task is to build a music play app that downloads audio files from a
+user-configured S3 compatable bucket (e.g. AWS or Backblaze) and plays them
+locally on an iOS device.
+
+The app will be built with flutter.
+I do not have a MAC: all development must happen on this linux machine.
+I would like to test the app on my ios phone, you will need to guide me through
+the process of deploying the app to my ios phone for testing.
+
+Responsiveness is a top priority in terms of the user experience.
+I will be using a very large audio database, so this should be considered when
+writing the code.
+Each audio file will have an embedded thumbnail image which should be extracted
+and cached as necessary. I want the thumbnail image to be displayed with songs
+and albums. The thumbnail image may not necessarily be square.
+
+An SQLite database will be used to cache audio file metadata.
+Carefully write the code to ensure that the metadata in the database is
+always consistent with what songs have been downloaded into the filesystem.
+
+Downloading from the S3 compatable bucket should happen incrementally.
+E.g. if the remote has only one file added, we should not be downloading the
+entire database again.
+It is possible that a song on the remote is modified (e.g. its metadata changed),
+in this case we should re-download the song and make sure the metadata update
+is reflected in the SQLite database.
+If files are removed from the remote database they should be removed locally also.
+The audio files will be synced from the remote only when the user requests for
+a sync to take place (no automatic download).
+We should only pull from the bucket, we should NEVER push or write to the remote bucket.
+
+For the S3 remote the user provides: bucket name, region, access key ID, secret access key.
+
+Be carefull to properly handle all possible errors, prefering to show the
+user an error message over silently crashing or showing a blank screen.
+
+# Library Page
+
+When the app opens it should bring you to the "library" page in which the user
+can browse songs and add them to the play queue.
+
+There should be three "tabs" at the top: "Artists", "Albums" and "Songs".
+Swiping left/right should smoothly change between the three tabs.
+
+On the top of each tab there should be a search bar for searching the
+Artist/Albums/Songs and a "sort-by" dropdown.
+The artist tab dropdown should be able to sort by:
+  - artist name A-Z
+  - number of songs
+  - number of albums
+  - most recently updated (the most recent file created timestamp of all of the artist songs as fetched from the remote)
+The album tab dropdown should be able to sort by:
+  - album name A-Z
+  - by artist (A-Z)
+  - by song count
+  - most recently updated (calculated in same way as artist most recently updated)
+The song tab dropdown should be able to sort by:
+  - Song name A-Z
+  - By artist then album (A-Z)
+  - Most recently added (calculated in same way as other recently added)
+Notice that when calculating "most recent" I care about the file creation time,
+not the file update time (e.g. updating metadata should not bump the track).
+
+## Artists Tab
+
+Should show a sorted list of artist entries.
+
+
+## Albums tab
+
+Show sorted list of album entries. Each entry should show number of songs,
+artist name, album name and show album art, and total runtime of album.
+Pressing an album should bring you to the album page.
+
+## Songs tab
+
+Should show a list of song entries.
+
+## Artist Page
+
+The artist page should show the title of the artist, the number songs and albums
+this artist is associated with,
+the total runtime of all songs by the artist,
+then list the albums this artist is a part of in a left/right scrollable list with album art
+then list the artists songs.
+There should be a button for "play songs" and a buttong for "add songs to queue".
+Each album in this list should show the number of tracks and name.
+If the artist is not part of any album then just dont have any albums scrollable at all.
+Pressing an album should bring you to that album page.
+Below the albums scrollable there should be a list of songs by the artist grouped
+by album and in alphabetical order.
+The list of albums should use the same "album entry" element as in the albums
+tab of the library page (code reuse).
+Next to each song the duration of the song should be shown.
+This list of songs should use the same "song entry" element as the songs
+tab (code reuse).
+
+## Album Page
+
+The album page should show the album title, number of tracks, total runtime,
+album art, artist name.
+
+There should be a button for "play songs" and a buttong for "add songs to queue".
+
+Then list all sogns in the album using a list of "song entries".
+The same song entries as in the song tab of the library page (code reuse).
+
+## Song Entry
+
+This element is used in a number pages and works the same everywhere.
+It is a rectangle shape spanning the width and with a fixed vertical height.
+It shows the information for a single song to be used in a vertically scrollable list.
+The entry should show the song name, artist, (album if applicable), duration,
+thumbnail image.
+The entries should be vertically compact.
+Get song names from audio file metadata (cached from the database), not audio file name.
+
+Pressing a songs entry should "play now" the song.
+
+## Artist Entry
+
+This tab should list all artists that have been found in the audio metadata.
+It should be a scrollable list.
+Under the artist name, each entry should show
+the number of albums and the number of songs this artist has been a part of.
+
+# Song Queue
+
+Playing of songs works by adding songs to a queue.
+Long-pressing an album/artist/song entry should bring up a small menu element above where
+the user long-pressed which should have options for "play now" and "add to queue"
+and "play next".
+A long press is 100ms.
+"Play now" means replace the current play queue with this.
+"Add to queue means append to the end of the play queue."
+"Play next" means insert these songs into the play queue immediatly after the
+current playing song.
+
+The current playing songs should be shown at the bottom of the screen
+(above all pages) in a small transulcent rectangular box with the song thumbnail
+on the left, the song name, artist name, album name, total duration and current duration through the
+song with a thin progress bar showing current progress through the song at the
+bottom of the rectangle.
+On the left there should be buttons for "start of song / prev song", "pause/play"
+and "next songs" in the normal conventional symbols for these actions.
+This rectangle should also show then number of songs in the queue and the
+total queue duration and current progress time at the top clearly distinct from the current playing song.
+This "song queue info box" should look similar to the one on the VLC app except
+I have a bit more info.
+
+If the user clicks or swipes up on the "song queue info box", then the song
+queue page will come up from the bottom of the screen and stop when the song
+queue info box gets to the top of the screen.
+The queue page can be closed again by swiping down from the song queue info
+box.
+The queue page should show the list of songs in the queue, the user should be
+able to rearrange songs in the queue by dragging them up/down. And the user
+should be able to remove songs from the queue by swiping them to the left.
+It should clearly show which song in the queue is currently playing.
+
+Currently playing song should be shown in my ios notifications page, with
+album art and play/pause next/prev buttongs.
+
+# Settings Page
+
+The top right of the library page should have a settings button which when clicked
+brings you to the setting page.
+This page lets you specify the S3 endpoing by letting the user choose
+the endpoing url, bucket name, region, access key id, secret access key.
+The secret access key should be in hidden password dots by default but there should
+be an "eye" button in the left of the text box to show/hide the password.
+
+There should be a button to save the configuration when updated (it should indicate if you
+have unsaved changes).
+Below these remote settings there should be a button to "sync now" which
+will scan the remote for new/changed songs, download them and update the
+appropriate metadata.
+The download shoud show the current progress.
+
+If an error occurs during download, make sure to properly handle this and show
+the user a usefull error message that can be used to diagnose.
+
+A wide variety of audio files should be supported for playing and extracting
+metadata including: mp3, flac, opus.
+
+There should be a button to load the the test remote settings which are:
+{
+  bucket: 'music-test-7b22',
+  region: 'eu-central-003',
+  endpoint: 's3.eu-central-003.backblazeb2.com',
+  accessKeyId: '0038a8d5945ebb5000000000d',
+  secretAccessKey: 'K003/JysvhgF0AqOgOVnztwDy39SrIU',
+}
+
+Note that some songs in my database have no Album associated with them.
+This is ok and expected, that means they are just not part of any album and
+you dont need to create any kind of "unknown album" album entry.
+
+# Style Guidelines
+
+I want a minimal clean and consistent application style.
+Simple minimalistic icons should be used.
+Use system fonts and be consistent.
+- Prefer **anchored, inline popover menus** near the user's touch target for sort/context actions.
+- Avoid bottom-sheet/action-sheet style menus for routine in-page actions when an anchored popover is feasible.
+- Keep control buttons visually simple: minimal borders/fills, consistent hit targets, and no mixed icon styles in the same row.
+Make sure the app is responsive even when handling large music databases.
