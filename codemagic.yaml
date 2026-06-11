@@ -44,7 +44,7 @@ workflows:
       cocoapods: default
       ios_signing:
         certificates:
-          - initialcert
+          - initialdistcert
         provisioning_profiles:
           - demoprofile
       vars:
@@ -64,6 +64,10 @@ workflows:
         script: flutter test
       - name: Set up iOS code signing
         script: xcode-project use-profiles
+      - name: Show installed signing identities
+        script: |
+          security find-identity -v -p codesigning
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles" || true
       - name: Build IPA
         script: flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
     artifacts:
